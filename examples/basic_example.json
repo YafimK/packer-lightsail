@@ -1,0 +1,33 @@
+{
+  "variables": {
+    "LIGHTSAIL_ACCESS_KEY": "{{ env `LIGHTSAIL_ACCESS_KEY` }}",
+    "LIGHTSAIL_SECRET_KEY": "{{ env `LIGHTSAIL_SECRET_KEY` }}"
+  },
+  "builders": [
+    {
+      "type": "lightsail",
+      "access_key": "{{ user `LIGHTSAIL_ACCESS_KEY` }}",
+      "secret_key": "{{ user `LIGHTSAIL_SECRET_KEY` }}",
+      "regions": [
+        "us-east-1a",
+        "us-west-1a"
+      ],
+      "snapshot_name": "test_snapshot",
+      "bundle_id": "nano_2.0",
+      "blueprint_id": "test_snapshot",
+      "ssh_user": "",
+      "ssh_pub_key": "",
+      "timeout": "15m"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "apt-get update",
+        "apt-get upgrade -y",
+        "echo '<ssh-rsa_key>' | tee /root/.ssh/authorized_keys"
+      ]
+    }
+  ]
+}

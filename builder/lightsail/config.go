@@ -22,9 +22,8 @@ type Config struct {
 	SecretKey string `mapstructure:"secret_key"`
 
 	PublicKeyUser string `mapstructure:"ssh_user"`
-	PublicKey     string `mapstructure:"ssh_pub_key"`
 
-	timeout time.Duration `mapstructure:"timeout"`
+	Timeout time.Duration `mapstructure:"timeout"`
 }
 
 func NewConfig(raws ...interface{}) (*Config, error) {
