@@ -2,6 +2,7 @@ package lightsail
 
 import (
 	"github.com/hashicorp/packer/common"
+	"github.com/hashicorp/packer/helper/communicator"
 	"github.com/hashicorp/packer/helper/config"
 	"github.com/hashicorp/packer/template/interpolate"
 	"time"
@@ -24,6 +25,8 @@ type Config struct {
 	PublicKeyUser string `mapstructure:"ssh_user"`
 
 	Timeout time.Duration `mapstructure:"timeout"`
+
+	Comm communicator.Config `mapstructure:",squash"`
 }
 
 func NewConfig(raws ...interface{}) (*Config, error) {

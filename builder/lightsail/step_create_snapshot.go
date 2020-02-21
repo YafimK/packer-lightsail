@@ -27,6 +27,7 @@ func (s *StepCreateSnapshot) Run(
 		Credentials: &creds,
 		Region:      &config.Regions[0],
 	}
+
 	newSession, err := session.NewSession(awsCfg)
 	if err != nil {
 		err = fmt.Errorf("failed setting up aws session: %v", newSession)

@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/lightsail"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
-	"log"
 	"time"
 )
 
@@ -27,7 +26,8 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 	}
 	newSession, err := session.NewSession(awsCfg)
 	if err != nil {
-		log.Fatalf("failed setting up aws session: %v", newSession)
+		err = fmt.Errorf("failed setting up aws session: %v", newSession)
+		return handleError(err, state)
 	}
 	lsClient := lightsail.New(newSession)
 
