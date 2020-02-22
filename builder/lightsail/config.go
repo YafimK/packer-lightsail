@@ -39,6 +39,8 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		InterpolateContext: &c.ctx,
 	}, raws...)
 	c.Comm.Type = "ssh"
+	c.Comm.SSHUsername = "ubuntu"
+
 	c.Comm.Prepare(&c.ctx)
 
 	if err != nil {

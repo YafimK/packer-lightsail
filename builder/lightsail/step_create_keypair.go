@@ -55,7 +55,6 @@ func (s *StepKeyPair) Run(
 	decodedPrivateKey := []byte(*keyPairResp.PrivateKeyBase64)
 	s.Comm.SSHPrivateKey = decodedPrivateKey
 	s.Comm.SSHPublicKey = []byte(*keyPairResp.PublicKeyBase64)
-	s.Comm.SSHUsername = "ubunutu"
 
 	state.Put("keypair", *keyPairResp) // default name for ssh step
 
