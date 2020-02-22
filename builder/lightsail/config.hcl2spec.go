@@ -16,6 +16,13 @@ type FlatConfig struct {
 	PackerOnError             *string           `mapstructure:"packer_on_error" cty:"packer_on_error"`
 	PackerUserVars            map[string]string `mapstructure:"packer_user_variables" cty:"packer_user_variables"`
 	PackerSensitiveVars       []string          `mapstructure:"packer_sensitive_variables" cty:"packer_sensitive_variables"`
+	SnapshotName              *string           `mapstructure:"snapshot_name" required:"true" cty:"snapshot_name"`
+	Regions                   []string          `mapstructure:"regions" required:"true" cty:"regions"`
+	BundleId                  *string           `mapstructure:"bundle_id" required:"true" cty:"bundle_id"`
+	Blueprint                 *string           `mapstructure:"blueprint_id" required:"true" cty:"blueprint_id"`
+	AccessKey                 *string           `mapstructure:"access_key" required:"true" cty:"access_key"`
+	SecretKey                 *string           `mapstructure:"secret_key" required:"true" cty:"secret_key"`
+	Timeout                   *string           `mapstructure:"timeout" cty:"timeout"`
 	Type                      *string           `mapstructure:"communicator" cty:"communicator"`
 	PauseBeforeConnect        *string           `mapstructure:"pause_before_connecting" cty:"pause_before_connecting"`
 	SSHHost                   *string           `mapstructure:"ssh_host" cty:"ssh_host"`
@@ -77,6 +84,13 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"packer_on_error":              &hcldec.AttrSpec{Name: "packer_on_error", Type: cty.String, Required: false},
 		"packer_user_variables":        &hcldec.BlockAttrsSpec{TypeName: "packer_user_variables", ElementType: cty.String, Required: false},
 		"packer_sensitive_variables":   &hcldec.AttrSpec{Name: "packer_sensitive_variables", Type: cty.List(cty.String), Required: false},
+		"snapshot_name":                &hcldec.AttrSpec{Name: "snapshot_name", Type: cty.String, Required: false},
+		"regions":                      &hcldec.AttrSpec{Name: "regions", Type: cty.List(cty.String), Required: false},
+		"bundle_id":                    &hcldec.AttrSpec{Name: "bundle_id", Type: cty.String, Required: false},
+		"blueprint_id":                 &hcldec.AttrSpec{Name: "blueprint_id", Type: cty.String, Required: false},
+		"access_key":                   &hcldec.AttrSpec{Name: "access_key", Type: cty.String, Required: false},
+		"secret_key":                   &hcldec.AttrSpec{Name: "secret_key", Type: cty.String, Required: false},
+		"timeout":                      &hcldec.AttrSpec{Name: "timeout", Type: cty.String, Required: false},
 		"communicator":                 &hcldec.AttrSpec{Name: "communicator", Type: cty.String, Required: false},
 		"pause_before_connecting":      &hcldec.AttrSpec{Name: "pause_before_connecting", Type: cty.String, Required: false},
 		"ssh_host":                     &hcldec.AttrSpec{Name: "ssh_host", Type: cty.String, Required: false},

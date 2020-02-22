@@ -48,10 +48,11 @@ func (b *Builder) Run(
 		b.config.AccessKey,
 		b.config.SecretKey,
 		"")
-	state.Put("creds", staticCredentials)
-	log.Println("starting builder")
+	state.Put("creds", *staticCredentials)
+	ui.Say("starting builder")
 	steps := []multistep.Step{
-		&StepKeyPair{DebugMode: b.config.Debug, DebugKeyPath: "", Comm: &b.config.Comm},
+		&StepKeyPair{DebugMode: b.config.PackerDebug, DebugKeyPath: fmt.Sprintf("ls_%s.pem",
+			b.config.PackerBuildName), Comm: &b.config.Comm},
 		new(StepCreateServer),
 		&communicator.StepConnect{
 			Config:    &b.config.Comm,
