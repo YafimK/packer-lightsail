@@ -64,6 +64,7 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 	}
 
 	state.Put("server_details", *lsInstance)
+	state.Put("server_ip", *lsInstance.Instance.PublicIpAddress)
 
 	ui.Say(fmt.Sprintf("Deployed snapshot instance \"%s\" is now \"active\" state", *lsInstance.Instance.Name))
 

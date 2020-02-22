@@ -27,15 +27,10 @@ func (b *Builder) Prepare(
 	var err error
 	b.config, err = NewConfig(raws...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	staticCredentials := credentials.NewStaticCredentials(
-		b.config.AccessKey,
-		b.config.SecretKey,
-		"")
-
-	return nil, nil
+	return nil, nil, nil
 }
 
 func (b *Builder) Run(
@@ -49,18 +44,24 @@ func (b *Builder) Run(
 	state.Put("hook", hook)
 	state.Put("ui", ui)
 
+	staticCredentials := credentials.NewStaticCredentials(
+		b.config.AccessKey,
+		b.config.SecretKey,
+		"")
+	state.Put("creds", staticCredentials)
+
 	steps := []multistep.Step{
 		&StepKeyPair{Comm: &b.config.Comm},
 		new(StepCreateServer),
 		&communicator.StepConnect{
 			Config:    &b.config.Comm,
-			Host:      sshHostCallback,
-			SSHConfig: sshConfigCallback,
+			Host:      communicator.CommHost(b.config.Comm.Host(), "server_ip"),
+			SSHConfig: b.config.Comm.SSHConfigFunc(),
 		},
 		new(common.StepProvision),
 		new(StepCreateSnapshot),
 		new(StepCloneSnapshot),
-		common.StepCleanupTempKeys{Comm: &b.config.Comm},
+		&common.StepCleanupTempKeys{Comm: &b.config.Comm},
 		// new(StepCloneStorage),
 	}
 

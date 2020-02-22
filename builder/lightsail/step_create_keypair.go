@@ -50,7 +50,7 @@ func (s *StepKeyPair) Run(
 	var decodedPrivateKey []byte
 	base64.StdEncoding.Encode(decodedPrivateKey, []byte(*keyPairResp.PrivateKeyBase64))
 	s.Comm.SSHPrivateKey = decodedPrivateKey
-	state.Put("sshKey", *keyPairResp)
+	state.Put("privateKey", *keyPairResp) // default name
 
 	return multistep.ActionContinue
 
