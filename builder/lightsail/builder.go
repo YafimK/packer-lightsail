@@ -51,7 +51,7 @@ func (b *Builder) Run(
 	state.Put("creds", staticCredentials)
 
 	steps := []multistep.Step{
-		&StepKeyPair{Comm: &b.config.Comm},
+		&StepKeyPair{DebugMode: b.config.Debug, DebugKeyPath: "", Comm: &b.config.Comm},
 		new(StepCreateServer),
 		&communicator.StepConnect{
 			Config:    &b.config.Comm,
@@ -62,9 +62,25 @@ func (b *Builder) Run(
 		new(StepCreateSnapshot),
 		new(StepCloneSnapshot),
 		&common.StepCleanupTempKeys{Comm: &b.config.Comm},
-		// new(StepCloneStorage),
 	}
 
+	// Run the steps
+	b.runner = common.NewRunner(steps, b.config.PackerConfig, ui)
+	b.runner.Run(ctx, state)
+
+	// If there was an error, return that
+	if rawErr, ok := state.GetOk("error"); ok {
+		return nil, rawErr.(error)
+	}
+
+	if _, ok := state.GetOk("snapshot_name"); !ok {
+		log.Println("Failed to find snapshot_name in state. Bug?")
+		return nil, nil
+	}
+
+	artifact := &Artifact{}
+
+	return artifact, nil
 }
 
 // Cancel is called when the build is cancelled

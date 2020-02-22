@@ -15,7 +15,9 @@ import (
 )
 
 type StepKeyPair struct {
-	Comm *communicator.Config
+	DebugMode    bool
+	DebugKeyPath string
+	Comm         *communicator.Config
 }
 
 func (s *StepKeyPair) Run(
@@ -38,6 +40,7 @@ func (s *StepKeyPair) Run(
 	lsClient := lightsail.New(newSession)
 
 	ui.Say(fmt.Sprintf("connected to AWS region -  \"%s\" ...", config.Regions[0]))
+
 	tempSSHKeyName := fmt.Sprintf("packer-%s", uuid.TimeOrderedUUID())
 
 	keyPairResp, err := lsClient.CreateKeyPair(&lightsail.CreateKeyPairInput{
@@ -50,7 +53,9 @@ func (s *StepKeyPair) Run(
 	var decodedPrivateKey []byte
 	base64.StdEncoding.Encode(decodedPrivateKey, []byte(*keyPairResp.PrivateKeyBase64))
 	s.Comm.SSHPrivateKey = decodedPrivateKey
-	state.Put("privateKey", *keyPairResp) // default name
+	s.Comm.SSHUsername = tempSSHKeyName
+
+	state.Put("privateKey", *keyPairResp) // default name for ssh step
 
 	return multistep.ActionContinue
 

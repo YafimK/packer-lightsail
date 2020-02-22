@@ -1,7 +1,6 @@
 package lightsail
 
 import (
-	"github.com/hashicorp/hcl/v2/hcldec"
 	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/helper/communicator"
 	"github.com/hashicorp/packer/helper/config"
@@ -15,23 +14,18 @@ type Config struct {
 	ctx             interpolate.Context
 	PackerBuildName string
 
-	SnapshotName string   `mapstructure:"snapshot_name"`
-	Regions      []string `mapstructure:"regions"`
-	BundleId     string   `mapstructure:"bundle_id"`
-	Blueprint    string   `mapstructure:"blueprint_id"`
+	SnapshotName string   `mapstructure:"snapshot_name" required:"true"`
+	Regions      []string `mapstructure:"regions" required:"true"`
+	BundleId     string   `mapstructure:"bundle_id" required:"true"`
+	Blueprint    string   `mapstructure:"blueprint_id" required:"true"`
 
-	AccessKey string `mapstructure:"access_key"`
-	SecretKey string `mapstructure:"secret_key"`
-
-	PublicKeyUser string `mapstructure:"ssh_user"`
+	AccessKey string `mapstructure:"access_key" required:"true"`
+	SecretKey string `mapstructure:"secret_key" required:"true"`
 
 	Timeout time.Duration `mapstructure:"timeout"`
 
-	Comm communicator.Config `mapstructure:",squash"`
-}
-
-func (c Config) ConfigSpec() hcldec.ObjectSpec {
-	panic("implement me")
+	Comm  communicator.Config `mapstructure:",squash"`
+	Debug bool                `mapstructure:"debug"`
 }
 
 func NewConfig(raws ...interface{}) (*Config, error) {

@@ -15,8 +15,6 @@
       "snapshot_name": "test_snapshot",
       "bundle_id": "nano_2.0",
       "blueprint_id": "test_snapshot",
-      "ssh_user": "",
-      "ssh_pub_key": "",
       "timeout": "15m"
     }
   ],
