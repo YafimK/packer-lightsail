@@ -12,7 +12,7 @@ import (
 	"log"
 )
 
-const BuilderId = "amazon.lightsail"
+const BuilderId = "yafimk.lightsail"
 
 type Builder struct {
 	config *Config
@@ -27,7 +27,7 @@ func (b *Builder) Prepare(
 	var err error
 	b.config, err = NewConfig(raws...)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed loading config: %w", err)
 	}
 
 	return nil, nil, nil
@@ -49,7 +49,7 @@ func (b *Builder) Run(
 		b.config.SecretKey,
 		"")
 	state.Put("creds", staticCredentials)
-
+	log.Println("starting builder")
 	steps := []multistep.Step{
 		&StepKeyPair{DebugMode: b.config.Debug, DebugKeyPath: "", Comm: &b.config.Comm},
 		new(StepCreateServer),
@@ -73,22 +73,16 @@ func (b *Builder) Run(
 		return nil, rawErr.(error)
 	}
 
-	if _, ok := state.GetOk("snapshot_name"); !ok {
-		log.Println("Failed to find snapshot_name in state. Bug?")
+	if _, ok := state.GetOk("snapshots"); !ok {
+		log.Println("Failed to find snapshots in state. Bug?")
 		return nil, nil
 	}
 
-	artifact := &Artifact{}
-
-	return artifact, nil
-}
-
-// Cancel is called when the build is cancelled
-func (b *Builder) Cancel() {
-	if b.runner != nil {
-		log.Println("Cancelling the step runner ...")
-		b.runner.Cancel()
+	artifact := &Artifact{
+		Name:        b.config.SnapshotName,
+		RegionNames: b.config.Regions,
+		creds:       staticCredentials,
 	}
 
-	fmt.Println("Cancelling the builder ...")
+	return artifact, nil
 }

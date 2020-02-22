@@ -39,4 +39,6 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return c, nil
 }

@@ -19,6 +19,7 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 	ui := state.Get("ui").(packer.Ui)
 	config := state.Get("config").(Config)
 	creds := state.Get("creds").(credentials.Credentials)
+	keyPairName := state.Get("keyPairName").(string)
 
 	awsCfg := &aws.Config{
 		Credentials: &creds,
@@ -38,7 +39,7 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 		BlueprintId:      aws.String(config.Blueprint),
 		BundleId:         aws.String(config.BundleId),
 		InstanceNames:    []*string{aws.String(config.SnapshotName)},
-		KeyPairName:      aws.String(config.PublicKeyUser),
+		KeyPairName:      aws.String(keyPairName),
 	})
 	ui.Say(fmt.Sprintf("created lightsail instance -  \"%s\" ...", config.SnapshotName))
 
@@ -49,6 +50,7 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 		case <-ticker.C:
 			lsInstance, err = lsClient.GetInstance(&lightsail.GetInstanceInput{InstanceName: aws.String(config.SnapshotName)})
 			if err != nil {
+				err = fmt.Errorf("failed creating instance: %w", err)
 				return handleError(err, state)
 			}
 			state.Put("server_details", *lsInstance)
@@ -58,6 +60,7 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 			break
 		case <-ctx.Done():
 			ticker.Stop()
+			err = fmt.Errorf("failed creating instance: %w", err)
 			return handleError(ctx.Err(), state)
 		}
 		break

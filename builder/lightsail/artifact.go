@@ -15,7 +15,7 @@ type Artifact struct {
 	Name        string
 	RegionNames []string
 
-	creds credentials.Credentials
+	creds *credentials.Credentials
 }
 
 // BuilderId returns the unique identifier of this builder
@@ -28,7 +28,7 @@ func (a *Artifact) Destroy() error {
 	log.Printf("Deleting snapshot \"%s\"", a.Name)
 
 	awsCfg := &aws.Config{
-		Credentials: &a.creds,
+		Credentials: a.creds,
 		Region:      &a.RegionNames[0],
 	}
 	newSession, err := session.NewSession(awsCfg)

@@ -25,6 +25,7 @@ func (s *StepCloneSnapshot) Run(ctx context.Context, state multistep.StateBag) m
 		return multistep.ActionContinue
 	}
 
+	var snapshots []lightsail.InstanceSnapshot
 	for _, region := range config.Regions {
 		awsCfg := &aws.Config{
 			Credentials: &creds,
@@ -64,12 +65,12 @@ func (s *StepCloneSnapshot) Run(ctx context.Context, state multistep.StateBag) m
 			}
 			break
 		}
-
+		snapshots = append(snapshots, *snapshot.InstanceSnapshot)
 		ui.Say(fmt.Sprintf("Deployed snapshot \"%s\" is now \"active\" state", *snapshot.InstanceSnapshot.Name))
 
 	}
 
-	state.Put("snapshot_details", *snapshot.InstanceSnapshot)
+	state.Put("snapshots", snapshots)
 
 	return multistep.ActionContinue
 
