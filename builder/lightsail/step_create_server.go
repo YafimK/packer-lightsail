@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lightsail"
+	"github.com/hashicorp/packer/common/uuid"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 	"time"
@@ -21,9 +22,10 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 	creds := state.Get("creds").(credentials.Credentials)
 	keyPairName := state.Get("keyPairName").(string)
 
+	awsRegion := getCentralRegion(config.Regions[0])
 	awsCfg := &aws.Config{
 		Credentials: &creds,
-		Region:      aws.String(getCentralRegion(config.Regions[0])),
+		Region:      aws.String(awsRegion),
 	}
 	newSession, err := session.NewSession(awsCfg)
 	if err != nil {
@@ -32,23 +34,23 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 	}
 	lsClient := lightsail.New(newSession)
 
-	ui.Say(fmt.Sprintf("connected to AWS region -  \"%s\" ...", config.Regions[0]))
-
+	ui.Say(fmt.Sprintf("connected to AWS region -  \"%s\" ...", awsRegion))
+	tempInstanceName := fmt.Sprintf("%s-%s", config.SnapshotName, uuid.TimeOrderedUUID())
 	_, err = lsClient.CreateInstances(&lightsail.CreateInstancesInput{
 		AvailabilityZone: aws.String(config.Regions[0]),
 		BlueprintId:      aws.String(config.Blueprint),
 		BundleId:         aws.String(config.BundleId),
-		InstanceNames:    []*string{aws.String(config.SnapshotName)},
+		InstanceNames:    []*string{aws.String(tempInstanceName)},
 		KeyPairName:      aws.String(keyPairName),
 	})
-	ui.Say(fmt.Sprintf("created lightsail instance -  \"%s\" ...", config.SnapshotName))
+	ui.Say(fmt.Sprintf("created lightsail instance -  \"%s\" ...", tempInstanceName))
 
 	var lsInstance *lightsail.GetInstanceOutput
 	ticker := time.NewTicker(5 * time.Second)
 	for {
 		select {
 		case <-ticker.C:
-			lsInstance, err = lsClient.GetInstance(&lightsail.GetInstanceInput{InstanceName: aws.String(config.SnapshotName)})
+			lsInstance, err = lsClient.GetInstance(&lightsail.GetInstanceInput{InstanceName: aws.String(tempInstanceName)})
 			if err != nil {
 				err = fmt.Errorf("failed creating instance: %w", err)
 				return handleError(err, state)
@@ -69,7 +71,8 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 	state.Put("server_details", *lsInstance)
 	state.Put("server_ip", *lsInstance.Instance.PublicIpAddress)
 
-	ui.Say(fmt.Sprintf("Deployed snapshot instance \"%s\" is now \"active\" state", *lsInstance.Instance.Name))
+	ui.Say(fmt.Sprintf("Deployed snapshot instance \"%s\" is now \"%s\" state", *lsInstance.Instance.Name,
+		*lsInstance.Instance.State.Name))
 
 	return multistep.ActionContinue
 }
@@ -98,8 +101,7 @@ func (s *StepCreateServer) Cleanup(state multistep.StateBag) {
 	ui.Say(fmt.Sprintf("Deleting server \"%s\" ...", serverDetails))
 
 	_, err = lsClient.DeleteInstance(&lightsail.DeleteInstanceInput{
-		ForceDeleteAddOns: nil,
-		InstanceName:      aws.String(config.SnapshotName),
+		InstanceName: serverDetails.Instance.Name,
 	})
 	if err != nil {
 		ui.Error(fmt.Sprintf("failed to delete server \"%s\": %s", *serverDetails.Instance.Name, err))

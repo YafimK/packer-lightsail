@@ -24,9 +24,10 @@ func (s *StepCloneSnapshot) Run(ctx context.Context, state multistep.StateBag) m
 	if len(config.Regions) < 1 {
 		return multistep.ActionContinue
 	}
+	ui.Say(fmt.Sprintf("Deploying snapshot \"%s\" into regions: %v", *snapshot.Name, config.Regions[1:]))
 
 	var snapshots []lightsail.InstanceSnapshot
-	for _, region := range config.Regions {
+	for _, region := range config.Regions[1:] {
 		awsRegion := getCentralRegion(region)
 		awsCfg := &aws.Config{
 			Credentials: &creds,
@@ -39,13 +40,18 @@ func (s *StepCloneSnapshot) Run(ctx context.Context, state multistep.StateBag) m
 		}
 		lsClient := lightsail.New(newSession)
 
-		ui.Say(fmt.Sprintf("connected to AWS region -  \"%s\" ...", config.Regions[0]))
-
+		ui.Say(fmt.Sprintf("connected to AWS region -  \"%s\" ...", awsRegion))
+		ui.Say(fmt.Sprintf("creating snapshot \"%s\" in  \"%s\" ..", config.SnapshotName, config.Regions[0]))
 		_, err = lsClient.CopySnapshot(&lightsail.CopySnapshotInput{
-			SourceRegion:       &config.Regions[0],
+			SourceRegion:       snapshot.Location.RegionName,
 			SourceSnapshotName: snapshot.Name,
 			TargetSnapshotName: snapshot.Name,
 		})
+		if err != nil {
+			err = fmt.Errorf("failed cloning snapshot: %w", err)
+			return handleError(err, state)
+		}
+		ui.Say(fmt.Sprintf("waiting for snapshot \"%s\" to be ready", config.SnapshotName))
 		var snapshot *lightsail.GetInstanceSnapshotOutput
 		ticker := time.NewTicker(5 * time.Second)
 		for {
@@ -67,8 +73,8 @@ func (s *StepCloneSnapshot) Run(ctx context.Context, state multistep.StateBag) m
 			break
 		}
 		snapshots = append(snapshots, *snapshot.InstanceSnapshot)
-		ui.Say(fmt.Sprintf("Deployed snapshot \"%s\" is now \"active\" state", *snapshot.InstanceSnapshot.Name))
-
+		ui.Say(fmt.Sprintf("Deployed snapshot \"%s\" is now in \"%s\" state", *snapshot.InstanceSnapshot.Name,
+			*snapshot.InstanceSnapshot.State))
 	}
 
 	state.Put("snapshots", snapshots)
@@ -78,5 +84,4 @@ func (s *StepCloneSnapshot) Run(ctx context.Context, state multistep.StateBag) m
 }
 
 func (s *StepCloneSnapshot) Cleanup(state multistep.StateBag) {
-	panic("implement me")
 }

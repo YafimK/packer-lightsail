@@ -52,6 +52,8 @@ func (s *StepKeyPair) Run(
 		err = fmt.Errorf("failed creating key pair: %w", err)
 		return handleError(err, state)
 	}
+	ui.Say(fmt.Sprintf("Created temporery key pair - %s", tempSSHKeyName))
+
 	decodedPrivateKey := []byte(*keyPairResp.PrivateKeyBase64)
 	s.Comm.SSHPrivateKey = decodedPrivateKey
 	s.Comm.SSHPublicKey = []byte(*keyPairResp.PublicKeyBase64)
