@@ -10,9 +10,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	server.RegisterBuilder(new(lightsail.Builder))
+	if err := server.RegisterBuilder(new(lightsail.Builder)); err != nil {
+		panic(err)
+	}
 	server.Serve()
 }
-
-
-

@@ -2,6 +2,7 @@ package lightsail
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -46,6 +47,9 @@ func (s *StepKeyPair) Run(
 	if err != nil {
 		return handleError(err, state)
 	}
+	var decodedPrivateKey []byte
+	base64.StdEncoding.Encode(decodedPrivateKey, []byte(*keyPairResp.PrivateKeyBase64))
+	s.Comm.SSHPrivateKey = decodedPrivateKey
 	state.Put("sshKey", *keyPairResp)
 
 	return multistep.ActionContinue

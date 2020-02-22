@@ -1,6 +1,7 @@
 package lightsail
 
 import (
+	"github.com/hashicorp/hcl/v2/hcldec"
 	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/helper/communicator"
 	"github.com/hashicorp/packer/helper/config"
@@ -27,6 +28,10 @@ type Config struct {
 	Timeout time.Duration `mapstructure:"timeout"`
 
 	Comm communicator.Config `mapstructure:",squash"`
+}
+
+func (c Config) ConfigSpec() hcldec.ObjectSpec {
+	panic("implement me")
 }
 
 func NewConfig(raws ...interface{}) (*Config, error) {
