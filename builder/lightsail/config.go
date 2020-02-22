@@ -38,6 +38,8 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		Interpolate:        true,
 		InterpolateContext: &c.ctx,
 	}, raws...)
+	c.Comm.Type = "ssh"
+	c.Comm.Prepare(&c.ctx)
 
 	if err != nil {
 		return c, err
@@ -46,4 +48,8 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 	packer.LogSecretFilter.Set(c.AccessKey)
 
 	return c, nil
+}
+
+func getCentralRegion(region string) string {
+	return region[:len(region)-1]
 }

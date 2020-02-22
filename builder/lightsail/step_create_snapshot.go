@@ -25,7 +25,7 @@ func (s *StepCreateSnapshot) Run(
 
 	awsCfg := &aws.Config{
 		Credentials: &creds,
-		Region:      &config.Regions[0],
+		Region:      aws.String(getCentralRegion(config.Regions[0])),
 	}
 
 	newSession, err := session.NewSession(awsCfg)
@@ -98,7 +98,7 @@ func (s *StepCreateSnapshot) Cleanup(state multistep.StateBag) {
 
 	awsCfg := &aws.Config{
 		Credentials: &creds,
-		Region:      &config.Regions[0],
+		Region:      aws.String(getCentralRegion(config.Regions[0])),
 	}
 	newSession, err := session.NewSession(awsCfg)
 	if err != nil {

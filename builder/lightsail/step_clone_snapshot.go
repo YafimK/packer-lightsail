@@ -27,9 +27,10 @@ func (s *StepCloneSnapshot) Run(ctx context.Context, state multistep.StateBag) m
 
 	var snapshots []lightsail.InstanceSnapshot
 	for _, region := range config.Regions {
+		awsRegion := getCentralRegion(region)
 		awsCfg := &aws.Config{
 			Credentials: &creds,
-			Region:      &region,
+			Region:      aws.String(awsRegion),
 		}
 		newSession, err := session.NewSession(awsCfg)
 		if err != nil {

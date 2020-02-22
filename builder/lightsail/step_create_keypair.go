@@ -2,9 +2,6 @@ package lightsail
 
 import (
 	"context"
-	"crypto/x509"
-	"encoding/base64"
-	"encoding/pem"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -32,9 +29,10 @@ func (s *StepKeyPair) Run(
 	config := state.Get("config").(Config)
 	creds := state.Get("creds").(credentials.Credentials)
 
+	awsRegion := getCentralRegion(config.Regions[0])
 	awsCfg := &aws.Config{
 		Credentials: &creds,
-		Region:      &config.Regions[0],
+		Region:      aws.String(awsRegion),
 	}
 	newSession, err := session.NewSession(awsCfg)
 	if err != nil {
@@ -42,12 +40,10 @@ func (s *StepKeyPair) Run(
 		return handleError(err, state)
 	}
 	lsClient := lightsail.New(newSession)
-
-	ui.Say(fmt.Sprintf("connected to AWS region -  \"%s\" ...", config.Regions[0]))
+	ui.Say(fmt.Sprintf("connected to AWS region -  \"%s\" ...", awsRegion))
 
 	tempSSHKeyName := fmt.Sprintf("packer-%s", uuid.TimeOrderedUUID())
 	state.Put("keyPairName", tempSSHKeyName) // default name for ssh step
-
 	keyPairResp, err := lsClient.CreateKeyPair(&lightsail.CreateKeyPairInput{
 		KeyPairName: aws.String(tempSSHKeyName),
 		Tags:        nil,
@@ -56,17 +52,12 @@ func (s *StepKeyPair) Run(
 		err = fmt.Errorf("failed creating key pair: %w", err)
 		return handleError(err, state)
 	}
-	var decodedPrivateKey []byte
-	base64.StdEncoding.Encode(decodedPrivateKey, []byte(*keyPairResp.PrivateKeyBase64))
-	privateKey, err := x509.ParsePKCS1PrivateKey(decodedPrivateKey)
-	privateBlock := pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
-	}
-	s.Comm.SSHPrivateKey = pem.EncodeToMemory(&privateBlock)
-	s.Comm.SSHUsername = tempSSHKeyName
+	decodedPrivateKey := []byte(*keyPairResp.PrivateKeyBase64)
+	s.Comm.SSHPrivateKey = decodedPrivateKey
+	s.Comm.SSHPublicKey = []byte(*keyPairResp.PublicKeyBase64)
+	s.Comm.SSHUsername = "ubunutu"
 
-	state.Put("privateKey", *keyPairResp) // default name for ssh step
+	state.Put("keypair", *keyPairResp) // default name for ssh step
 
 	if s.DebugMode {
 		ui.Message(fmt.Sprintf("Saving key for debug purposes: %s", s.DebugKeyPath))
@@ -76,7 +67,7 @@ func (s *StepKeyPair) Run(
 			return multistep.ActionHalt
 		}
 		defer f.Close()
-		if _, err := f.Write(pem.EncodeToMemory(&privateBlock)); err != nil {
+		if _, err := f.Write(decodedPrivateKey); err != nil {
 			state.Put("error", fmt.Errorf("error saving debug key: %s", err))
 			return multistep.ActionHalt
 		}
@@ -94,5 +85,4 @@ func (s *StepKeyPair) Run(
 }
 
 func (s *StepKeyPair) Cleanup(multistep.StateBag) {
-	panic("implement me")
 }

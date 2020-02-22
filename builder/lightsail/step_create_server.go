@@ -23,7 +23,7 @@ func (s *StepCreateServer) Run(ctx context.Context, state multistep.StateBag) mu
 
 	awsCfg := &aws.Config{
 		Credentials: &creds,
-		Region:      &config.Regions[0],
+		Region:      aws.String(getCentralRegion(config.Regions[0])),
 	}
 	newSession, err := session.NewSession(awsCfg)
 	if err != nil {
@@ -87,7 +87,7 @@ func (s *StepCreateServer) Cleanup(state multistep.StateBag) {
 
 	awsCfg := &aws.Config{
 		Credentials: &creds,
-		Region:      &config.Regions[0],
+		Region:      aws.String(getCentralRegion(config.Regions[0])),
 	}
 	newSession, err := session.NewSession(awsCfg)
 	if err != nil {
