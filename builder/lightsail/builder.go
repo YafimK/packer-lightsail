@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 	"log"
+	"time"
 )
 
 const BuilderId = "yafimk.lightsail"
@@ -67,6 +68,8 @@ func (b *Builder) Run(
 
 	// Run the steps
 	b.runner = common.NewRunner(steps, b.config.PackerConfig, ui)
+
+	startTime := time.Now()
 	b.runner.Run(ctx, state)
 
 	// If there was an error, return that
@@ -78,6 +81,7 @@ func (b *Builder) Run(
 		log.Println("Failed to find snapshots in state. Bug?")
 		return nil, nil
 	}
+	ui.Say(fmt.Sprintf("finished build flow in %f.2 min", time.Since(startTime).Minutes()))
 
 	artifact := &Artifact{
 		Name:        b.config.SnapshotName,
