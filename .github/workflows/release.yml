@@ -19,8 +19,6 @@ jobs:
       - name: Build project
         run: |
           go build -v -o packer-builder-lightsail .
-      - name: Create artifact
-        run: |
           tar -czvf packer-builder-lightsail.tar.gz ./packer-builder-lightsail
       - name: Create Release
         id: create_release
