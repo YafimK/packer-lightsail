@@ -19,8 +19,8 @@ jobs:
       - name: Build project
         run: |
           go build -v -o packer-builder-lightsail .
-          go get github.com/mitchellh/gox
-          $GOPATH/bin/gox -os="linux darwin windows" -arch="386 amd64" -output="packer-builder-lightsal-{{.OS}}-{{
+          go install github.com/mitchellh/gox
+          $HOME/go/bin/gox -os="linux darwin windows" -arch="386 amd64" -output="packer-builder-lightsal-{{.OS}}-{{
           .Arch}}"
           tar -czvf packer-builder-lightsail.tar.gz ./packer-builder-lightsail*
       - name: Create Release
