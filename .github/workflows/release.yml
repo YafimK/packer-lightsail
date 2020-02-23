@@ -38,6 +38,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: packer-build-lightsail.tar.gz
-          asset_name: packer-build-lightsail.tar.gz
+          asset_path: ./packer-builder-lightsail.tar.gz
+          asset_name: packer-builder-lightsail.tar.gz
           asset_content_type: application/tar
